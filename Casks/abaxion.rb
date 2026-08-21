@@ -10,8 +10,9 @@ cask "abaxion" do
   desc "Menu bar replacement with AeroSpace and yabai support"
   homepage "https://github.com/xrhstosmour/abaxion"
 
-  # Matches MACOSX_DEPLOYMENT_TARGET in the Xcode project.
-  depends_on macos: ">= :sonoma"
+  # Matches MACOSX_DEPLOYMENT_TARGET in the Xcode project. The bare symbol is
+  # the minimum version, the `">= :sonoma"` string form is deprecated.
+  depends_on macos: :sonoma
 
   app "Abaxion.app"
 
