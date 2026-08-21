@@ -1,9 +1,6 @@
 cask "stege" do
   version "0.1.0"
-  # Placeholder until the first release. Deliberately a real (wrong) checksum
-  # rather than `:no_check`, so an install attempt fails loudly instead of
-  # silently skipping verification. The release workflow rewrites both lines.
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "76becdfee16083ca5992c5727d235157c980e25d4135d08dc386ae142b1d77dd"
 
   url "https://github.com/xrhstosmour/stege/releases/download/v#{version}/Stege.zip"
   name "Stege"
