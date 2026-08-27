@@ -12,6 +12,21 @@ cask "stege" do
 
   app "Stege.app"
 
+  # Stege is signed, but with a self-signed certificate rather than an Apple
+  # Developer ID, so it cannot be notarised without a paid Apple account.
+  # Gatekeeper refuses to launch it while the download still carries the
+  # quarantine flag, and the user is shown "Stege.app Not Opened" with no
+  # working way past it. Clearing the flag is what makes the cask installable.
+  #
+  # What stands in for notarisation: Homebrew has already checked the download
+  # against the sha256 above, and the release it came from is built by GitHub
+  # Actions with build provenance attestation, so the archive traces back to
+  # the commit and workflow that produced it.
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Stege.app"]
+  end
+
   zap trash: [
     "~/.stege-config.toml",
     "~/.config/stege",
