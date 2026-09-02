@@ -24,9 +24,15 @@ gh attestation verify Stege.zip --repo xrhstosmour/stege
 ## Signing
 
 Stege is signed with a self-signed certificate, not an Apple Developer ID, so it is **not**
-notarized. Gatekeeper will refuse the first launch with `"Stege.app" Not Opened`. Open System
-Settings, Privacy & Security, scroll to the bottom and choose Open Anyway.
+notarized. Gatekeeper refuses to launch a quarantined app it cannot check, and shows
+`"Stege.app" Not Opened` with no working way past it, so the cask clears the quarantine flag in
+a `postflight` step. That is a deliberate trade: installing from this tap means trusting the tap
+rather than Apple's notary service.
 
 What stands in for notarization is the checksum in the cask, which Homebrew verifies on every
 install, and the build provenance attestation above, which ties the archive back to the commit
-and workflow that produced it.
+and workflow that produced it. Both are checked again in CI on every change to the cask, so a
+version whose checksum does not match what the release actually serves cannot be merged.
+
+Downloading the release by hand instead gets the usual unnotarized-app treatment: open System
+Settings, Privacy & Security, scroll to the bottom and choose Open Anyway.
