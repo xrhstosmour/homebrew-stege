@@ -7,7 +7,15 @@ cask "stege" do
   desc "Menu bar replacement with AeroSpace and yabai support"
   homepage "https://github.com/xrhstosmour/stege"
 
-  # Matches MACOSX_DEPLOYMENT_TARGET in the Xcode project.
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
+  # Matches the app target's MACOSX_DEPLOYMENT_TARGET. Homebrew only accepts
+  # named releases here, not point versions, so the app's minimum has to be a
+  # whole release for this to be true: it was 14.6 once, which let 14.0 through
+  # 14.5 install a binary macOS then refused to launch.
   depends_on macos: :sonoma
 
   app "Stege.app"
@@ -28,10 +36,15 @@ cask "stege" do
   end
 
   zap trash: [
-    "~/.stege-config.toml",
     "~/.config/stege",
+    "~/.stege-config.toml",
+    # Written beside the configuration when an older one is migrated.
+    "~/.stege-config.toml.backup",
     "~/Library/Application Support/stege",
+    "~/Library/Caches/com.xrhstosmour.stege",
+    "~/Library/HTTPStorages/com.xrhstosmour.stege",
     "~/Library/Preferences/com.xrhstosmour.stege.plist",
+    "~/Library/Saved Application State/com.xrhstosmour.stege.savedState",
   ]
 
   caveats <<~EOS
@@ -42,5 +55,9 @@ cask "stege" do
     drive them. macOS will prompt on first launch.
 
     The Spaces widget needs AeroSpace or yabai.
+
+    Upgrading from 0.30.0 or older rewrites your configuration in place, because
+    four widget identifiers and the appearance section were renamed. The
+    original is kept beside it as config.toml.backup.
   EOS
 end

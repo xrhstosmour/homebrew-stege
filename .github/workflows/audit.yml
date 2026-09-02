@@ -1,0 +1,71 @@
+name: Audit
+
+# Every branch, not just pull requests, so a bump pushed before its pull
+# request exists is still checked.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# Least privilege: this workflow only ever reads.
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Audit
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      # Catches what a hand-edited cask gets wrong. Both of these found real
+      # problems the first time they were run against this file: a
+      # `depends_on macos` value Homebrew does not accept, and an unsorted
+      # `zap trash` list.
+      - name: Style
+        run: brew style Casks/stege.rb
+
+      - name: Audit
+        run: |
+          brew tap-new local/audit --no-git
+          # `tap-new` makes a Formula directory and no Casks one.
+          mkdir -p "$(brew --repository local/audit)/Casks"
+          cp Casks/stege.rb "$(brew --repository local/audit)/Casks/stege.rb"
+          brew audit --cask --strict local/audit/stege
+
+      # The checksum in the cask has to be the checksum of the archive the URL
+      # actually serves. It was taken from a 404 page once, because the release
+      # workflow had not finished publishing when the bump was written, and
+      # `brew install` then failed for everyone until a second pull request
+      # fixed it. Nothing but this would have noticed.
+      - name: The checksum matches the published archive
+        run: |
+          set -euo pipefail
+          version="$(grep -oE 'version "[^"]+"' Casks/stege.rb | head -1 | cut -d'"' -f2)"
+          declared="$(grep -oE 'sha256 "[^"]+"' Casks/stege.rb | head -1 | cut -d'"' -f2)"
+          url="https://github.com/xrhstosmour/stege/releases/download/v${version}/Stege.zip"
+          echo "version ${version}"
+          echo "url     ${url}"
+          curl --fail --location --silent --show-error --output Stege.zip "$url"
+          actual="$(shasum -a 256 Stege.zip | cut -d' ' -f1)"
+          echo "declared ${declared}"
+          echo "actual   ${actual}"
+          test "$declared" = "$actual"
+
+      # Ties the archive back to the commit and workflow that built it, which
+      # is what stands in for notarisation. A release published by anything
+      # else fails here.
+      - name: The archive came from the release workflow
+        run: gh attestation verify Stege.zip --repo xrhstosmour/stege
+        env:
+          GH_TOKEN: ${{ github.token }}
