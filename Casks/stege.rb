@@ -1,6 +1,6 @@
 cask "stege" do
-  version "0.43.0"
-  sha256 "731a90c165027adf2f037d1b721102f229f0b4d864d73d2e96a5fd910a6ca3bd"
+  version "0.44.0"
+  sha256 "f2cfac7532ecea4e4c17d7ee4828a306c26a26b614d77a3a1bd12b8adb7a2f02"
 
   url "https://github.com/xrhstosmour/stege/releases/download/v#{version}/Stege.zip"
   name "Stege"
