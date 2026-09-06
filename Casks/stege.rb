@@ -35,6 +35,14 @@ cask "stege" do
         args: ["-dr", "com.apple.quarantine", "{{appdir}}/Stege.app"]
   end
 
+  # Stege replaces the system menu bar, so a stale copy stays on screen and
+  # running until it quits, an overwritten app bundle underneath it changes
+  # nothing it is showing. Quitting it here, rather than force killing it,
+  # gives it the same chance to save state that closing it by hand would, and
+  # `brew upgrade` reopens whatever it quit for an upgrade once the new copy
+  # is staged and its quarantine flag cleared.
+  uninstall quit: "com.xrhstosmour.stege"
+
   zap trash: [
     "~/.config/stege",
     "~/.stege-config.toml",
