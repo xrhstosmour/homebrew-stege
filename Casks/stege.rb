@@ -30,9 +30,9 @@ cask "stege" do
   # against the sha256 above, and the release it came from is built by GitHub
   # Actions with build provenance attestation, so the archive traces back to
   # the commit and workflow that produced it.
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Stege.app"]
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args: ["-dr", "com.apple.quarantine", "{{appdir}}/Stege.app"]
   end
 
   zap trash: [
