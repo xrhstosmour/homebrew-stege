@@ -25,8 +25,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # `Homebrew/actions` renamed its default branch from `master` to `main`,
+      # which broke this action reference outright, not just style, GitHub
+      # cannot resolve `master` there at all.
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@main
 
       # Catches what a hand-edited cask gets wrong. Both of these found real
       # problems the first time they were run against this file: a
