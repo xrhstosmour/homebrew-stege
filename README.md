@@ -15,6 +15,17 @@ provenance and publishes a GitHub release. The cask here is then updated to the 
 and checksum through a pull request. The tap is never pushed to directly, so what
 `brew install` resolves to cannot change without review.
 
+The pull request's `Audit` check, and the release itself, run on the maintainer's own Mac
+through an ephemeral GitHub Actions runner, because GitHub's hosted macOS runners kept cancelling
+jobs for lack of capacity. From a `stege` checkout:
+
+```bash
+bin/local-runner.sh --repository xrhstosmour/homebrew-stege
+```
+
+The Stege repository's `AGENTS.md`, under "CI runs on the owner's Mac", has the full release steps
+and the rules a job follows on a personal machine.
+
 Verify any release came from that workflow:
 
 ```bash
