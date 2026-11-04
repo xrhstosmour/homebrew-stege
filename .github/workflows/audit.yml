@@ -1,10 +1,9 @@
 name: Audit
 
-# Every branch, not just pull requests, so a bump pushed before its pull
-# request exists is still checked.
+# Pull requests only. This runs on a runner that exists only while the owner
+# starts one, so a branch push run as well would be a second job per bump,
+# sitting queued forever and taken first by the next runner.
 on:
-  push:
-    branches: ["**"]
   pull_request:
 
 # Least privilege: this workflow only ever reads.
@@ -18,18 +17,25 @@ concurrency:
 jobs:
   audit:
     name: Audit
-    runs-on: macos-15
+    # The owner's Mac, through `bin/local-runner.sh --repository
+    # xrhstosmour/homebrew-stege` in the `stege` repository. GitHub's hosted
+    # macOS pools left jobs unassigned until they were cancelled, annotated "Due
+    # to capacity constraints" (measured 2026-11-04).
+    #
+    # A personal machine, so the job uses the Homebrew already installed rather
+    # than `setup-homebrew`, never updates it, and leaves nothing behind: the
+    # temporary tap is removed and its trust lands in the job's own directory.
+    runs-on: stege-local
+    timeout-minutes: 15
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      HOMEBREW_NO_ANALYTICS: "1"
 
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
-      # `Homebrew/actions` renamed its default branch from `master` to `main`,
-      # which broke this action reference outright, not just style, GitHub
-      # cannot resolve `master` there at all.
-      - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@main
 
       # Catches what a hand-edited cask gets wrong. Both of these found real
       # problems the first time they were run against this file: a
@@ -39,7 +45,13 @@ jobs:
         run: brew style Casks/stege.rb
 
       - name: Audit
+        # `brew trust` writes `homebrew/trust.json` under `XDG_CONFIG_HOME`,
+        # which would otherwise be the user's own configuration.
+        env:
+          XDG_CONFIG_HOME: ${{ runner.temp }}/xdg
         run: |
+          # A run that failed before its cleanup leaves the tap behind.
+          brew untap local/audit 2>/dev/null || true
           brew tap-new local/audit --no-git
           # `tap-new` makes a Formula directory and no Casks one.
           mkdir -p "$(brew --repository local/audit)/Casks"
@@ -76,3 +88,7 @@ jobs:
         run: gh attestation verify Stege.zip --repo xrhstosmour/stege
         env:
           GH_TOKEN: ${{ github.token }}
+
+      - name: Remove the temporary tap
+        if: always()
+        run: brew untap local/audit 2>/dev/null || true
