@@ -44,6 +44,10 @@ jobs:
           # `tap-new` makes a Formula directory and no Casks one.
           mkdir -p "$(brew --repository local/audit)/Casks"
           cp Casks/stege.rb "$(brew --repository local/audit)/Casks/stege.rb"
+          # Newer Homebrew refuses to load a cask from a tap it has not been
+          # told to trust, and this one is created a line above, so trusting
+          # it is safe: it holds nothing but the file copied in here.
+          brew trust local/audit
           brew audit --cask --strict local/audit/stege
 
       # The checksum in the cask has to be the checksum of the archive the URL
